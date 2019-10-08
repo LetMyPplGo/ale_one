@@ -5,6 +5,7 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audio_cache.dart';
+import 'package:flutter/animation.dart';
 
 // This app is a stateful, it tracks the user's current choice.
 class BasicAppBarSample extends StatefulWidget {
@@ -12,9 +13,10 @@ class BasicAppBarSample extends StatefulWidget {
   _BasicAppBarSampleState createState() => _BasicAppBarSampleState();
 }
 
-class _BasicAppBarSampleState extends State<BasicAppBarSample> {
+class _BasicAppBarSampleState extends State<BasicAppBarSample>
+    with SingleTickerProviderStateMixin {
+  // --- this block is related to the menu selection
   Choice _selectedChoice = choices[0]; // The app's "state".
-  int _direction = 0;
 
   void _select(Choice choice) {
     // Causes the app to rebuild with the new _selectedChoice.
@@ -23,15 +25,14 @@ class _BasicAppBarSampleState extends State<BasicAppBarSample> {
     });
   }
 
+  // --- this block is related to the car rotation
+  int _direction = 0;
   _turn(int value) {
     setState(() {
       _direction = ((_direction + value) % 4);
       _direction = _direction < 0 ? 4 : _direction;
     });
   }
-
-  _turnLeft() => _turn(-1);
-  _turnRight() => _turn(1);
 
   @override
   Widget build(BuildContext context) {
@@ -76,22 +77,20 @@ class _BasicAppBarSampleState extends State<BasicAppBarSample> {
               flex: 3,
               child: TheCar(direction: _direction),
             ),
-//            CustomPaint(
-//              painter: MyPainter(),
-//              child: Center(
-//                child: TheCar(direction: _direction),
-//              ),
-//            ),
             Expanded(
                 flex: 1,
                 child: Row(children: <Widget>[
                   RaisedButton(
                     child: Text('Left'),
-                    onPressed: _turnLeft,
+                    onPressed: () {
+                      _turn(-1);
+                    },
                   ),
                   RaisedButton(
                     child: Text('Right'),
-                    onPressed: _turnRight,
+                    onPressed: () {
+                      _turn(1);
+                    },
                   ),
                 ])),
           ])),
@@ -108,15 +107,17 @@ class MyPainter extends CustomPainter {
     paint.color = Colors.orangeAccent;
 
     var path = Path();
-    path.moveTo(size.width / 2 - 10, size.height / 2);
-//    path.lineTo(x, y);
+    var _roadWidth = 100;
+    for ( var i = 1; i <= 10; i++) {
+      canvas.drawRect(
+          Rect.fromLTWH((size.width / 2) - _roadWidth, 40.0 * i, 10, 20), paint);
+      canvas.drawRect(
+          Rect.fromLTWH((size.width / 2) + _roadWidth, 40.0 * i, 10, 20), paint);
+    }
   }
 
   @override
-  bool shouldRepaint(CustomPainter oldDelegate) {
-    // wtf?...
-    return null;
-  }
+  bool shouldRepaint(CustomPainter oldDelegate) => true;
 }
 
 class TheCar extends StatelessWidget {
@@ -132,12 +133,36 @@ class TheCar extends StatelessWidget {
   Widget build(BuildContext context) {
     return RotatedBox(
         quarterTurns: direction,
-        child: Image.asset(
-          'assets/theCar.png',
-          fit: BoxFit.scaleDown,
-        ));
+        child: CustomPaint(
+            painter: MyPainter(),
+            child: Image.asset(
+              'assets/theCar.png',
+              fit: BoxFit.scaleDown,
+            )
+        )
+    );
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // -------------- old stuff
 // -------------- old stuff
