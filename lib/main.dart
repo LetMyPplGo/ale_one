@@ -34,6 +34,32 @@ class _BasicAppBarSampleState extends State<BasicAppBarSample>
     });
   }
 
+  // --- this block is about animation
+  int _offset=0;
+  Animation<double> animation;
+  AnimationController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = AnimationController(duration: const Duration(minutes: 1), vsync: this);
+    animation = Tween<double>(begin: 0, end: 300).animate(controller)
+    ..addListener(() {
+      setState(() {
+        // animation
+        _offset = (animation.value.round() % 4);
+      });
+    });
+    controller.forward();
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -73,25 +99,35 @@ class _BasicAppBarSampleState extends State<BasicAppBarSample>
           padding: const EdgeInsets.all(8.0),
           child: Column(children: <Widget>[
 //            ChoiceCard(choice: _selectedChoice),
+//            Expanded(
+//              flex: 1,
+//              child: Text('${animation.value} \n $_offset'),
+//            ),
             Expanded(
-              flex: 3,
-              child: TheCar(direction: _direction),
+              flex: 5,
+              child: TheCar(direction: _direction, offset: _offset),
             ),
             Expanded(
                 flex: 1,
                 child: Row(children: <Widget>[
-                  RaisedButton(
-                    child: Text('Left'),
-                    onPressed: () {
-                      _turn(-1);
-                    },
+                  Expanded(
+                    flex: 1,
+                    child: RaisedButton(
+                      child: Text('<--'),
+                      onPressed: () {
+                        _turn(-1);
+                      },
+                    ),
                   ),
-                  RaisedButton(
-                    child: Text('Right'),
-                    onPressed: () {
-                      _turn(1);
-                    },
-                  ),
+                  Expanded(
+                    flex: 1,
+                    child: RaisedButton(
+                      child: Text('-->'),
+                      onPressed: () {
+                        _turn(1);
+                      },
+                    ),
+                  )
                 ])),
           ])),
     ));
@@ -99,48 +135,54 @@ class _BasicAppBarSampleState extends State<BasicAppBarSample>
 }
 
 class MyPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Here is the painting
-    final paint = Paint();
-
-    paint.color = Colors.orangeAccent;
-
-    var path = Path();
-    var _roadWidth = 100;
-    for ( var i = 1; i <= 10; i++) {
-      canvas.drawRect(
-          Rect.fromLTWH((size.width / 2) - _roadWidth, 40.0 * i, 10, 20), paint);
-      canvas.drawRect(
-          Rect.fromLTWH((size.width / 2) + _roadWidth, 40.0 * i, 10, 20), paint);
-    }
+  MyPainter(int value) {
+    _offset = value;
   }
 
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => true;
+  var _offset=0;
+
+    @override
+    void paint(Canvas canvas, Size size) {
+      // Here is the painting
+      final paint = Paint();
+
+      paint.color = Colors.orangeAccent;
+
+      var _roadWidth = 100;
+      for (var i = 1; i <= 10; i++) {
+        canvas.drawRect(
+            Rect.fromLTWH((size.width / 2) - _roadWidth, (10 * _offset) + (40.0 * i), 10, 20),
+            paint);
+        canvas.drawRect(
+            Rect.fromLTWH((size.width / 2) + _roadWidth-10, (10 * _offset) + (40.0 * i), 10, 20),
+            paint);
+      }
+    }
+
+    @override
+    bool shouldRepaint(CustomPainter oldDelegate) => true;
 }
 
 class TheCar extends StatelessWidget {
-  TheCar({Key key, this.direction = 0}) : super(key: key);
+  TheCar({Key key, this.direction = 0, this.offset = 0}) : super(key: key);
 
   // 0 - up
   // 1 - right
   // 2 - down
   // 3 - left
   final int direction;
+  final int offset;
 
   @override
   Widget build(BuildContext context) {
     return RotatedBox(
         quarterTurns: direction,
         child: CustomPaint(
-            painter: MyPainter(),
+            painter: MyPainter(offset),
             child: Image.asset(
               'assets/theCar.png',
               fit: BoxFit.scaleDown,
-            )
-        )
-    );
+            )));
   }
 }
 
@@ -163,11 +205,7 @@ class TheCar extends StatelessWidget {
 
 
 
-
 // -------------- old stuff
-// -------------- old stuff
-// -------------- old stuff
-
 class Choice {
   const Choice({this.title, this.icon});
 
